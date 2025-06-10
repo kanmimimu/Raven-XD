@@ -1,0 +1,15 @@
+[
+{
+  "modid": "keystrokes",
+  "name": "KeystrokesMod",
+  "description": "LiquidBounce.",
+  "version": "B100",
+  "url": "https://www.youtube.com/ofpmedia",
+  "updateUrl": "",
+  "authorList": ["OFP", "Fyu", "spiderfrog", "Yario & Extazz"],
+  "credits": "OFP, Fyu, spiderfrog, Yario & Extazz",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
