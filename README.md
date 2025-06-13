@@ -5,7 +5,10 @@ Raven B4, but for those who can't afford it.
 
 Raven B4, but not only for Hypixel.
 
-![2024-08-13_10 14 36](https://github.com/user-attachments/assets/36e8920e-336e-4b62-ae3f-6b9962920812)
+Raven XD, but not Made in China
+
+![image](https://github.com/user-attachments/assets/429b8b5b-53ef-4543-b15b-0d1824e02108)
+
 ![Screenshot 2024-08-13 084510](https://github.com/user-attachments/assets/85637f18-9d6b-47d9-9dc2-cb8594aff585)
 </div>
 
@@ -13,8 +16,7 @@ Raven B4, but not only for Hypixel.
 
 ### Steps:
 
-1. **Download the latest .jar file from the releases**:
-   - Download from [https://github.com/xia-mc/Raven-XD/releases](https://github.com/xia-mc/Raven-XD/releases)
+1. **Download the latest .jar file from the [releases](https://github.com/kanmimimu/Raven-XD/releases)**
    - This client requires Forge 1.8.9.
 
 2. **Put in mods folder of your .minecraft directory**:
@@ -24,42 +26,6 @@ Raven B4, but not only for Hypixel.
 
 3. **Launch Minecraft**:
    - Once your on this step, you are pretty much done. When it's done loading, if you have done it properly, it should have a background with a train and the string "Raven XD" in big white letters.
-   - For more help, join the discord server and ask in #public-support.
-
-## How do I build this client?
-
-### Steps:
-
-1. **Download and Install Java SDK version 8**:
-   - Download from [Java SDK version 8](https://adoptium.net/en-GB/temurin/releases/?version=8).
-   - Install it and set the `JAVA_HOME` environment variable to the installation directory.
-
-2. **Verify Java Installation**:
-   - Open a terminal or command prompt.
-   - Run `java -version`.
-   - Ensure the output contains `openjdk version "1.8.0_{...}"`.
-
-3. **Install Gradle 4.7**:
-   - Download from [Gradle 4.7](https://gradle.org/next-steps/?version=4.7&format=bin).
-   - Follow the "Installing manually" guide on the [Gradle wiki](https://gradle.org/install).
-
-4. **Clone the Repository**:
-   - Run the following commands in the terminal or command prompt:
-     ```bash
-     git clone --recursive https://github.com/xia-mc/Raven-XD.git
-     cd Raven-XD
-     ```
-
-5. **Set Up the Project**:
-   - Run the following commands to set up the Gradle wrapper and the development environment:
-     ```bash
-     gradlew.bat
-     gradle wrapper
-     gradlew build
-     ```
-
-6. **Build Success**:
-   - If all steps complete without errors, the project is successfully built.
 
 
 ## Contribute
