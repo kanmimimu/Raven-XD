@@ -32,12 +32,28 @@ public class TestTargetHUD extends SubMode<TargetHUD> implements ITargetVisual {
     private final Animation playerXAnimation = new Animation(Easing.EASE_IN_OUT_CUBIC, 80);
     private final Animation playerYAnimation = new Animation(Easing.EASE_IN_OUT_CUBIC, 80);
 
+    private final Animation playerScaleAnimation = new Animation(Easing.EASE_OUT_QUAD, 100);
+
+    private enum PlayerAnimationState {
+        IDLE,         // アニメーション非アクティブ (モデルは1.0)
+        SHRINKING,    // 縮むアニメーション中 (1.0 -> 0.85)
+        EXPANDING     // 戻るアニメーション中 (0.85 -> 1.0)
+    }
+
+    private PlayerAnimationState currentAnimationState = PlayerAnimationState.IDLE;
+
+    // ★★ ダメージ状態を追跡するためのフィールドを再導入 ★★
+    private boolean wasPlayerHurtLastTick = false;
+
     public TestTargetHUD(String name, @NotNull TargetHUD parent) {
         super(name, parent);
         this.registerSetting(theme = new ModeSetting("Theme", Theme.themes, 0));
         this.registerSetting(font = new ModeSetting("Font", new String[]{"Minecraft", "ProductSans", "Regular"}, 0));
         this.registerSetting(showStatus = new ButtonSetting("Show win or loss", true));
         this.registerSetting(healthColor = new ButtonSetting("Traditional health color", true));
+
+        // コンストラクタでplayerScaleAnimationの初期値を設定し、確実に1.0から開始させる
+        playerScaleAnimation.run(1.0);
     }
 
     private IFont getFont() {
@@ -122,11 +138,73 @@ public class TestTargetHUD extends SubMode<TargetHUD> implements ITargetVisual {
             playerYAnimation.run(targetY);
             double animatedX = playerXAnimation.getValue();
             double animatedY = playerYAnimation.getValue();
-            double offset = -(player.hurtTime * 10);
+
+            boolean isPlayerHurt = player.hurtTime > 0; // 現在のフレームでダメージを受けているか
+
+            double scale;
+
+            // ★★ 2Dモデルアニメーションの状態遷移ロジック ★★
+            switch (currentAnimationState) {
+                case IDLE:
+                    scale = playerScaleAnimation.getValue(); // アイドル状態でもアニメーションの値を追従（初期値は1.0）
+                    playerScaleAnimation.run(1.0); // IDLE状態なら常に1.0に向かってアニメーションさせる
+
+                    // ダメージを受け始めたら縮むアニメーションを開始
+                    if (isPlayerHurt && !wasPlayerHurtLastTick) {
+                        playerScaleAnimation.run(0.85); // 縮む目標値
+                        currentAnimationState = PlayerAnimationState.SHRINKING;
+                    }
+                    break;
+
+                case SHRINKING:
+                    scale = playerScaleAnimation.getValue(); // 縮むアニメーションの値を使用
+                    // 縮むアニメーションが完了したか (約0.85に到達したか)
+                    if (Math.abs(playerScaleAnimation.getValue() - 0.85) < 0.001) {
+                        playerScaleAnimation.run(1.0); // 戻るアニメーション開始
+                        currentAnimationState = PlayerAnimationState.EXPANDING;
+                    }
+                    // 注意: 縮むアニメーション中に再度ダメージを受けても、中断せずにこのシーケンスを完了させる
+                    break;
+
+                case EXPANDING:
+                    scale = playerScaleAnimation.getValue(); // 戻るアニメーションの値を使用
+                    // 戻るアニメーションが完了したか (約1.0に到達したか)
+                    if (Math.abs(playerScaleAnimation.getValue() - 1.0) < 0.001) {
+                        currentAnimationState = PlayerAnimationState.IDLE;
+                        playerScaleAnimation.run(1.0); // 完全に1.0になったことを保証 (IDLE状態へリセット)
+                        scale = 1.0; // 明示的に1.0に設定
+                    }
+                    // 戻るアニメーション中に再度ダメージを受けたら、縮むアニメーションへ割り込み
+                    else if (isPlayerHurt && !wasPlayerHurtLastTick) {
+                        playerScaleAnimation.run(0.85);
+                        currentAnimationState = PlayerAnimationState.SHRINKING;
+                    }
+                    break;
+
+                default: // 何らかの理由で不明な状態になった場合のフォールバック
+                    scale = 1.0;
+                    currentAnimationState = PlayerAnimationState.IDLE;
+                    playerScaleAnimation.run(1.0);
+                    break;
+            }
+
+            // wasPlayerHurtLastTick を現在の状態に更新
+            wasPlayerHurtLastTick = isPlayerHurt; // 次のフレームのために現在の hurtTime 状態を保存
+
+            double offset = -(player.hurtTime * 10); // 色変化のオフセット (既存)
+
+            GlStateManager.pushMatrix();
+
+            GlStateManager.translate(animatedX + 25 / 2.0, animatedY + 25 / 2.0, 0);
+            GlStateManager.scale(scale, scale, 1);
+            GlStateManager.translate(-(animatedX + 25 / 2.0), -(animatedY + 25 / 2.0), 0);
+
             Color dynamicColor = new Color(255, (int) (255 + offset), (int) (255 + offset));
             GlStateManager.color(dynamicColor.getRed() / 255F, dynamicColor.getGreen() / 255F, dynamicColor.getBlue() / 255F, dynamicColor.getAlpha() / 255F);
             RenderUtils.renderPlayer2D((float) animatedX, (float) animatedY, 25, 25, player);
             GlStateManager.color(1, 1, 1, 1);
+
+            GlStateManager.popMatrix();
         }
     }
 }

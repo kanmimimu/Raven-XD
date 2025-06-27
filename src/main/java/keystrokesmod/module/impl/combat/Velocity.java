@@ -5,7 +5,9 @@ import keystrokesmod.module.impl.combat.velocity.*;
 import keystrokesmod.module.setting.impl.ModeValue;
 
 public class Velocity extends Module {
-    private final ModeValue mode;
+    public final ModeValue mode;
+
+    public static boolean hasReceivedVelocity = false;
 
     public Velocity() {
         super("Velocity", category.combat, "Reduce knock-back.");
@@ -25,11 +27,15 @@ public class Velocity extends Module {
     @Override
     public void onEnable() {
         mode.enable();
+        hasReceivedVelocity = false;
+        // System.out.println("[Velocity Module] Enabled. hasReceivedVelocity reset to false."); // 削除
     }
 
     @Override
     public void onDisable() {
         mode.disable();
+        hasReceivedVelocity = false;
+        // System.out.println("[Velocity Module] Disabled. hasReceivedVelocity reset to false."); // 削除
     }
 
     @Override

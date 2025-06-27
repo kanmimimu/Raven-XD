@@ -25,9 +25,18 @@ public class Animations extends Module {
     public static final ButtonSetting swingWhileDigging = new ButtonSetting("Swing while digging", true);
     public static final ButtonSetting clientSide = new ButtonSetting("Client side (visual 1.7)", true, swingWhileDigging::isToggled);
     private final ModeSetting blockAnimation = new ModeSetting("Block animation", new String[]{"None", "1.7", "Smooth", "Exhibition", "Stab", "Spin", "Sigma", "Wood", "Swong", "Chill", "Komorebi", "Rhys", "Allah"}, 1);
+
+    // ★★ 名称変更: alwaysBlock -> FakeBlock ★★
+    private final ButtonSetting fakeBlock = new ButtonSetting("FakeBlock", false);
+    // ★★ 新オプション追加 ★★
+    private final ButtonSetting fakeBlockOnSwing = new ButtonSetting("Only on swing", false, fakeBlock::isToggled);
+
     private final ModeSetting swingAnimation = new ModeSetting("Swing animation", new String[]{"None", "1.9+", "Smooth", "Punch", "Shove"}, 0);
     private final ModeSetting otherAnimation = new ModeSetting("Other animation", new String[]{"None", "1.7"}, 1);
     private final ButtonSetting fakeSlotReset = new ButtonSetting("Fake slot reset", false);
+
+    public static final ButtonSetting onlyReequipOnSlotSwitch = new ButtonSetting("Only Allow Re-equip Animation Upon Switching Slots", false);
+    public static final ButtonSetting fixReequipAnimation = new ButtonSetting("Fix Re-equip Animation", true, onlyReequipOnSlotSwitch::isToggled); // onlyReequipOnSlotSwitchが有効な場合のみ表示
 
     private final ButtonSetting modifyAnimations = new ButtonSetting("Customize Animations", false);
     private final SliderSetting staticStartSwingProgress = new SliderSetting("Starting Swing Progress", 0, -1, 2.5, 0.1, modifyAnimations::isToggled);
@@ -54,7 +63,6 @@ public class Animations extends Module {
     private final SliderSetting rotatez = new SliderSetting("rotation z", 0, -180, 180, 1, customrotation::isToggled);
 
 
-
     private int swing;
 
     private static final double staticscalemultiplier_x = 1;
@@ -65,8 +73,11 @@ public class Animations extends Module {
 
     public Animations() {
         super("Animations", category.render);
-      
-        this.registerSetting(blockAnimation, swingAnimation, otherAnimation, swingWhileDigging, clientSide, fakeSlotReset);
+
+        // ボタンの登録順序を変更: fakeBlockをfakeSlotResetの次に移動し、fakeBlockOnSwingを追加
+        this.registerSetting(blockAnimation, swingAnimation, otherAnimation, swingWhileDigging, clientSide, fakeSlotReset, fakeBlock, fakeBlockOnSwing);
+        this.registerSetting(new DescriptionSetting("Re-equip Animation")); // 説明を追加
+        this.registerSetting(onlyReequipOnSlotSwitch, fixReequipAnimation);
         this.registerSetting(modifyAnimations);
         this.registerSetting(staticStartSwingProgress, swingSpeed, swingSpeedWhileBlocking);
         this.registerSetting(new DescriptionSetting("Custom Translation"));
@@ -74,8 +85,6 @@ public class Animations extends Module {
         this.registerSetting(precustomtranslation, pretranslatex, pretranslatey, pretranslatez);
         this.registerSetting(customscaling, scalex, scaley, scalez);
         this.registerSetting(customrotation, rotatex, rotatey, rotatez);
-
-
     }
 
     @SubscribeEvent
@@ -110,11 +119,21 @@ public class Animations extends Module {
                 return;
             }
 
+            final ItemStack heldItem = mc.thePlayer.getHeldItem();
+
+            // ★★ FakeBlockが有効で、かつアイテムがブロック可能かどうかの基本チェック ★★
+            boolean isFakeBlockActive = fakeBlock.isToggled()
+                    && heldItem != null
+                    && heldItem.getItem().getItemUseAction(heldItem) == EnumAction.BLOCK;
+
+            // ★★ "Only on swing"が有効な場合、さらにスイング中かどうかの条件を追加 ★★
+            if (isFakeBlockActive && fakeBlockOnSwing.isToggled()) {
+                isFakeBlockActive = mc.thePlayer.isSwingInProgress;
+            }
+
             final EnumAction itemAction = event.getEnumAction();
-            final ItemRendererAccessor itemRenderer = (ItemRendererAccessor) mc.getItemRenderer();
             final float animationProgression = event.getAnimationProgression();
-            float swingProgress = event.getSwingProgress();
-            final float convertedProgress = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI);
+            final float swingProgress = event.getSwingProgress();
 
 
             if(modifyAnimations.isToggled()) {
@@ -125,157 +144,36 @@ public class Animations extends Module {
 
             if(precustomtranslation.isToggled()) {
                 this.pretranslate(pretranslatex.getInput(), pretranslatey.getInput(), pretranslatez.getInput());
-
             }
 
             if(customrotation.isToggled()) {
                 this.rotate((float) rotatex.getInput(), (float) rotatey.getInput(), (float) rotatez.getInput());
-
             }
 
             if(customscaling.isToggled()) {
                 this.scale(1, 1, 1);
             }
 
-
             this.translate(translatex.getInput(), translatey.getInput(), translatez.getInput());
 
 
             if (event.isUseItem()) {
+                // プレイヤーが実際にアイテムを使用している場合 (右クリックなど)
                 switch (itemAction) {
                     case NONE:
                         switch ((int) otherAnimation.getInput()) {
                             case 0:
                                 //none
-                                itemRenderer.transformFirstPersonItem(animationProgression, staticStartSwingProgressFloat);
+                                ((ItemRendererAccessor) mc.getItemRenderer()).transformFirstPersonItem(animationProgression, staticStartSwingProgressFloat);
                                 break;
                             case 1:
                                 //1.7
-                                itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                                ((ItemRendererAccessor) mc.getItemRenderer()).transformFirstPersonItem(animationProgression, swingProgress);
                                 break;
                         }
                         break;
                     case BLOCK:
-                        switch ((int) blockAnimation.getInput()) {
-                            case 0:
-                                //none
-                                itemRenderer.transformFirstPersonItem(animationProgression, staticStartSwingProgressFloat);
-                                itemRenderer.blockTransformation();
-                                break;
-
-                            case 1:
-                                //1.7
-                                itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
-                                itemRenderer.blockTransformation();
-                                break;
-
-                            case 2:
-                                //smooth
-                                itemRenderer.transformFirstPersonItem(animationProgression, staticStartSwingProgressFloat);
-                                final float y = -convertedProgress * 2.0F;
-                                this.translate(0.0F, y / 10.0F + 0.1F, 0.0F);
-                                GlStateManager.rotate(y * 10.0F, 0.0F, 1.0F, 0.0F);
-                                GlStateManager.rotate(250, 0.2F, 1.0F, -0.6F);
-                                GlStateManager.rotate(-10.0F, 1.0F, 0.5F, 1.0F);
-                                GlStateManager.rotate(-y * 20.0F, 1.0F, 0.5F, 1.0F);
-                                break;
-
-                            case 3:
-                                //exhibition
-                                itemRenderer.transformFirstPersonItem(animationProgression / 2.0F, staticStartSwingProgressFloat);
-                                this.translate(0.0F, 0.3F, -0.0F);
-                                GlStateManager.rotate(-convertedProgress * 31.0F, 1.0F, 0.0F, 2.0F);
-                                GlStateManager.rotate(-convertedProgress * 33.0F, 1.5F, (convertedProgress / 1.1F), 0.0F);
-                                itemRenderer.blockTransformation();
-                                break;
-
-                            case 4:
-                                //stab
-                                final float spin = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI);
-
-                                this.translate(0.6f, 0.3f, -0.6f + -spin * 0.7);
-                                GlStateManager.rotate(6090, 0.0f, 0.0f, 0.1f);
-                                GlStateManager.rotate(6085, 0.0f, 0.1f, 0.0f);
-                                GlStateManager.rotate(6110, 0.1f, 0.0f, 0.0f);
-                                itemRenderer.transformFirstPersonItem(0.0F, 0.0f);
-                                itemRenderer.blockTransformation();
-                                break;
-
-                            case 5:
-                                //spin
-                                itemRenderer.transformFirstPersonItem(animationProgression, staticStartSwingProgressFloat);
-                                this.translate(0, 0.2F, -1);
-                                GlStateManager.rotate(-59, -1, 0, 3);
-                                // Don't cast as float
-                                GlStateManager.rotate(-(System.currentTimeMillis() / 2 % 360), 1, 0, 0.0F);
-                                GlStateManager.rotate(60.0F, 0.0F, 1.0F, 0.0F);
-                                break;
-
-                            case 6:
-                                //sigma
-                                itemRenderer.transformFirstPersonItem(animationProgression, staticStartSwingProgressFloat);
-                                this.translate(0.0f, 0.1F, 0.0F);
-                                itemRenderer.blockTransformation();
-                                GlStateManager.rotate(convertedProgress * 35.0F / 2.0F, 0.0F, 1.0F, 1.5F);
-                                GlStateManager.rotate(-convertedProgress * 135.0F / 4.0F, 1.0f, 1.0F, 0.0F);
-                                break;
-
-                            case 7:
-                                //wood
-                                itemRenderer.transformFirstPersonItem(animationProgression / 2.0F, staticStartSwingProgressFloat);
-                                this.translate(0.0F, 0.3F, -0.0F);
-                                GlStateManager.rotate(-convertedProgress * 30.0F, 1.0F, 0.0F, 2.0F);
-                                GlStateManager.rotate(-convertedProgress * 44.0F, 1.5F, (convertedProgress / 1.2F), 0.0F);
-                                itemRenderer.blockTransformation();
-
-                                break;
-
-                            case 8:
-                                //swong
-                                itemRenderer.transformFirstPersonItem(animationProgression / 2.0F, swingProgress);
-                                GlStateManager.rotate(convertedProgress * 30.0F / 2.0F, -convertedProgress, -0.0F, 9.0F);
-                                GlStateManager.rotate(convertedProgress * 40.0F, 1.0F, -convertedProgress / 2.0F, -0.0F);
-                                this.translate(0.0F, 0.2F, 0.0F);
-                                itemRenderer.blockTransformation();
-
-                                break;
-
-                            case 9:
-                                //chill
-                                itemRenderer.transformFirstPersonItem(-0.25F, 1.0F + convertedProgress / 10.0F);
-                                GL11.glRotated(-convertedProgress * 25.0F, 1.0F, 0.0F, 0.0F);
-                                itemRenderer.blockTransformation();
-
-                                break;
-
-                            case 10:
-                                //komorebi
-                                this.translate(0.41F, -0.25F, -0.5555557F);
-                                this.translate(0.0F, 0, 0.0F);
-                                GlStateManager.rotate(35.0F, 0f, 1.5F, 0.0F);
-
-                                final float racism = MathHelper.sin(swingProgress * swingProgress / 64 * (float) Math.PI);
-
-                                GlStateManager.rotate(racism * -5.0F, 0.0F, 0.0F, 0.0F);
-                                GlStateManager.rotate(convertedProgress * -12.0F, 0.0F, 0.0F, 1.0F);
-                                GlStateManager.rotate(convertedProgress * -65.0F, 1.0F, 0.0F, 0.0F);
-                                itemRenderer.blockTransformation();
-
-                                break;
-
-                            case 11:
-                                //rhys
-                                itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
-                                itemRenderer.blockTransformation();
-                                this.translate(-0.3F, -0.1F, -0.0F);
-                                break;
-
-                            case 12:
-                                //Allah
-                                itemRenderer.transformFirstPersonItem(animationProgression, staticStartSwingProgressFloat);
-                                itemRenderer.blockTransformation();
-                                break;
-                        }
+                        renderBlockAnimation(animationProgression, swingProgress);
                         break;
                     case EAT:
                     case DRINK:
@@ -283,12 +181,12 @@ public class Animations extends Module {
                             case 0:
                                 //none
                                 func_178104_a(mc.thePlayer.getHeldItem(), mc.thePlayer, event.getPartialTicks());
-                                itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
+                                ((ItemRendererAccessor) mc.getItemRenderer()).transformFirstPersonItem(animationProgression, 0.0F);
                                 break;
                             case 1:
                                 //1.7
                                 func_178104_a(mc.thePlayer.getHeldItem(), mc.thePlayer, event.getPartialTicks());
-                                itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                                ((ItemRendererAccessor) mc.getItemRenderer()).transformFirstPersonItem(animationProgression, swingProgress);
                                 break;
                         }
                         break;
@@ -296,58 +194,67 @@ public class Animations extends Module {
                         switch ((int) otherAnimation.getInput()) {
                             case 0:
                                 //none
-                                itemRenderer.transformFirstPersonItem(animationProgression, 0.0F);
+                                ((ItemRendererAccessor) mc.getItemRenderer()).transformFirstPersonItem(animationProgression, 0.0F);
                                 func_178098_a(mc.thePlayer.getHeldItem(), event.getPartialTicks(), mc.thePlayer);
                                 break;
                             case 1:
                                 //1.7
-                                itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                                ((ItemRendererAccessor) mc.getItemRenderer()).transformFirstPersonItem(animationProgression, swingProgress);
                                 func_178098_a(mc.thePlayer.getHeldItem(), event.getPartialTicks(), mc.thePlayer);
                                 break;
                         }
                         break;
                 }
-
-                event.setCanceled(true);
-
+                event.setCanceled(true); // デフォルトのレンダリングをキャンセルし、独自に処理
             } else {
-                switch ((int) swingAnimation.getInput()) {
-                    case 0:
-                        //none
-                        func_178105_d(swingProgress);
-                        itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
-                        break;
+                // プレイヤーがアイテムを実際に使用していない場合 (右クリックしていない状態)
+                // ここで偽のブロックアニメーションまたは通常のスイングアニメーションを適用
 
-                    case 1:
-                        //1.9+
-                        func_178105_d(swingProgress);
-                        itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
-                        this.translate(0, -((swing - 1) -
-                                (swing == 0 ? 0 : Utils.getTimer().renderPartialTicks)) / 5f, 0);
-                        break;
+                if (isFakeBlockActive) { // ★★ isFakeBlockActiveの条件で偽のブロックアニメーションを表示 ★★
+                    // 偽のブロックアニメーションを強制的に表示
+                    renderBlockAnimation(animationProgression, swingProgress); // swingProgressを渡すことで、ブロックアニメーションがスイングに反応できるようにする
+                    event.setCanceled(true); // デフォルトのレンダリングをキャンセルし、独自に処理
+                } else {
+                    // それ以外の場合（FakeBlockが無効、または有効だが条件を満たさない）、
+                    // 通常のスイングアニメーションをレンダリング
+                    switch ((int) swingAnimation.getInput()) {
+                        case 0:
+                            //none
+                            func_178105_d(swingProgress);
+                            ((ItemRendererAccessor) mc.getItemRenderer()).transformFirstPersonItem(animationProgression, swingProgress);
+                            break;
 
-                    case 2:
-                        //smooth
-                        itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
-                        func_178105_d(animationProgression);
-                        break;
+                        case 1:
+                            //1.9+
+                            func_178105_d(swingProgress);
+                            ((ItemRendererAccessor) mc.getItemRenderer()).transformFirstPersonItem(animationProgression, swingProgress);
+                            this.translate(0, -((swing - 1) -
+                                    (swing == 0 ? 0 : Utils.getTimer().renderPartialTicks)) / 5f, 0);
+                            break;
 
-                    case 3:
-                        //punch
-                        itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
-                        func_178105_d(swingProgress);
-                        break;
+                        case 2:
+                            //smooth
+                            ((ItemRendererAccessor) mc.getItemRenderer()).transformFirstPersonItem(animationProgression, swingProgress);
+                            func_178105_d(animationProgression);
+                            break;
 
-                    case 4:
-                        //shove
-                        itemRenderer.transformFirstPersonItem(animationProgression, animationProgression);
-                        func_178105_d(swingProgress);
-                        break;
+                        case 3:
+                            //punch
+                            ((ItemRendererAccessor) mc.getItemRenderer()).transformFirstPersonItem(animationProgression, swingProgress);
+                            func_178105_d(swingProgress);
+                            break;
+
+                        case 4:
+                            //shove
+                            ((ItemRendererAccessor) mc.getItemRenderer()).transformFirstPersonItem(animationProgression, animationProgression);
+                            func_178105_d(swingProgress);
+                            break;
+                    }
+                    event.setCanceled(true); // デフォルトのレンダリングをキャンセルし、独自に処理
                 }
-
-                event.setCanceled(true);
             }
         } catch (Exception ignored) {
+            // 例外が発生してもクラッシュしないように無視
         }
     }
 
@@ -365,11 +272,136 @@ public class Animations extends Module {
 
     @SubscribeEvent
     public void onSwingAnimation(@NotNull SwingAnimationEvent event) {
-
         if ((mc.thePlayer.getItemInUseCount() == 1 || mc.thePlayer.isUsingItem()) && modifyAnimations.isToggled()) {
             event.setAnimationEnd((int) (event.getAnimationEnd() * ((-swingSpeedWhileBlocking.getInput() / 100) + 1)));
         } else {
             event.setAnimationEnd((int) (event.getAnimationEnd() * ((-swingSpeed.getInput() / 100) + 1)));
+        }
+    }
+
+    private void renderBlockAnimation(float animationProgression, float swingProgress) {
+        final ItemRendererAccessor itemRenderer = (ItemRendererAccessor) mc.getItemRenderer();
+        final float convertedProgress = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI);
+
+        switch ((int) blockAnimation.getInput()) {
+            case 0:
+                //none
+                itemRenderer.transformFirstPersonItem(animationProgression, staticStartSwingProgressFloat);
+                itemRenderer.blockTransformation();
+                break;
+
+            case 1:
+                //1.7
+                itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                itemRenderer.blockTransformation();
+                break;
+
+            case 2:
+                //smooth
+                itemRenderer.transformFirstPersonItem(animationProgression, staticStartSwingProgressFloat);
+                final float y = -convertedProgress * 2.0F;
+                this.translate(0.0F, y / 10.0F + 0.1F, 0.0F);
+                GlStateManager.rotate(y * 10.0F, 0.0F, 1.0F, 0.0F);
+                GlStateManager.rotate(250, 0.2F, 1.0F, -0.6F);
+                GlStateManager.rotate(-10.0F, 1.0F, 0.5F, 1.0F);
+                GlStateManager.rotate(-y * 20.0F, 1.0F, 0.5F, 1.0F);
+                break;
+
+            case 3:
+                //exhibition
+                itemRenderer.transformFirstPersonItem(animationProgression / 2.0F, staticStartSwingProgressFloat);
+                this.translate(0.0F, 0.3F, -0.0F);
+                GlStateManager.rotate(-convertedProgress * 31.0F, 1.0F, 0.0F, 2.0F);
+                GlStateManager.rotate(-convertedProgress * 33.0F, 1.5F, (convertedProgress / 1.1F), 0.0F);
+                itemRenderer.blockTransformation();
+                break;
+
+            case 4:
+                //stab
+                final float spin = MathHelper.sin(MathHelper.sqrt_float(swingProgress) * (float) Math.PI);
+
+                this.translate(0.6f, 0.3f, -0.6f + -spin * 0.7);
+                GlStateManager.rotate(6090, 0.0f, 0.0f, 0.1f);
+                GlStateManager.rotate(6085, 0.0f, 0.1f, 0.0f);
+                GlStateManager.rotate(6110, 0.1f, 0.0f, 0.0f);
+                itemRenderer.transformFirstPersonItem(0.0F, 0.0f);
+                itemRenderer.blockTransformation();
+                break;
+
+            case 5:
+                //spin
+                itemRenderer.transformFirstPersonItem(animationProgression, staticStartSwingProgressFloat);
+                this.translate(0, 0.2F, -1);
+                GlStateManager.rotate(-59, -1, 0, 3);
+                // Don't cast as float
+                GlStateManager.rotate(-(System.currentTimeMillis() / 2 % 360), 1, 0, 0.0F);
+                GlStateManager.rotate(60.0F, 0.0F, 1.0F, 0.0F);
+                break;
+
+            case 6:
+                //sigma
+                itemRenderer.transformFirstPersonItem(animationProgression, staticStartSwingProgressFloat);
+                this.translate(0.0f, 0.1F, 0.0F);
+                itemRenderer.blockTransformation();
+                GlStateManager.rotate(convertedProgress * 35.0F / 2.0F, 0.0F, 1.0F, 1.5F);
+                GlStateManager.rotate(-convertedProgress * 135.0F / 4.0F, 1.0f, 1.0F, 0.0F);
+                break;
+
+            case 7:
+                //wood
+                itemRenderer.transformFirstPersonItem(animationProgression / 2.0F, staticStartSwingProgressFloat);
+                this.translate(0.0F, 0.3F, -0.0F);
+                GlStateManager.rotate(-convertedProgress * 30.0F, 1.0F, 0.0F, 2.0F);
+                GlStateManager.rotate(-convertedProgress * 44.0F, 1.5F, (convertedProgress / 1.2F), 0.0F);
+                itemRenderer.blockTransformation();
+
+                break;
+
+            case 8:
+                //swong
+                itemRenderer.transformFirstPersonItem(animationProgression / 2.0F, swingProgress);
+                GlStateManager.rotate(convertedProgress * 30.0F / 2.0F, -convertedProgress, -0.0F, 9.0F);
+                GlStateManager.rotate(convertedProgress * 40.0F, 1.0F, -convertedProgress / 2.0F, -0.0F);
+                this.translate(0.0F, 0.2F, 0.0F);
+                itemRenderer.blockTransformation();
+
+                break;
+
+            case 9:
+                //chill
+                itemRenderer.transformFirstPersonItem(-0.25F, 1.0F + convertedProgress / 10.0F);
+                GL11.glRotated(-convertedProgress * 25.0F, 1.0F, 0.0F, 0.0F);
+                itemRenderer.blockTransformation();
+
+                break;
+
+            case 10:
+                //komorebi
+                this.translate(0.41F, -0.25F, -0.5555557F);
+                this.translate(0.0F, 0, 0.0F);
+                GlStateManager.rotate(35.0F, 0f, 1.5F, 0.0F);
+
+                final float racism = MathHelper.sin(swingProgress * swingProgress / 64 * (float) Math.PI);
+
+                GlStateManager.rotate(racism * -5.0F, 0.0F, 0.0F, 0.0F);
+                GlStateManager.rotate(convertedProgress * -12.0F, 0.0F, 0.0F, 1.0F);
+                GlStateManager.rotate(convertedProgress * -65.0F, 1.0F, 0.0F, 0.0F);
+                itemRenderer.blockTransformation();
+
+                break;
+
+            case 11:
+                //rhys
+                itemRenderer.transformFirstPersonItem(animationProgression, swingProgress);
+                itemRenderer.blockTransformation();
+                this.translate(-0.3F, -0.1F, -0.0F);
+                break;
+
+            case 12:
+                //Allah
+                itemRenderer.transformFirstPersonItem(animationProgression, staticStartSwingProgressFloat);
+                itemRenderer.blockTransformation();
+                break;
         }
     }
 

@@ -32,7 +32,7 @@ public class Speed extends Module {
                 .add(new HypixelSpeed("Hypixel", this))
                 .add(new VanillaSpeed("Vanilla", this))
                 .add(new BlocksMCSpeed("BlocksMC", this))
-                .add(new VulcanSpeed("Vulcan", this))
+                .add(new VulcanSpeed("LowHop", this))
                 .add(new GrimACSpeed("GrimAC", this))
                 .add(new StrafeSpeed("Strafe", this))
         );

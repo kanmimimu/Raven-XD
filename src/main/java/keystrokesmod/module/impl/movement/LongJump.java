@@ -13,7 +13,7 @@ public class LongJump extends Module {
         super("LongJump", category.movement);
         this.registerSetting(mode = new ModeValue("Mode", this)
                 .add(new HypixelBowLongJump("HypixelBow", this))
-                .add(new HypixelFireballLongJump("HypixelFireball", this))
+                .add(new HypixelFireballLongJump("Fireball", this))
                 .add(new VulcanLongJump("Vulcan", this))
                 .add(new GrimBoatLongJump("GrimBoat", this))
                 .add(new GrimVelocityLongJump("Test", this))

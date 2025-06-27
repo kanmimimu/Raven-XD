@@ -33,7 +33,7 @@ public class TargetHUD extends Module {
                 .add(new RavenTargetHUD("Raven", this))
                 .add(new ExhibitionTargetHUD("Exhibition", this))
                 .add(new WurstTargetHUD("Wurst", this))
-                .add(new TestTargetHUD("Test", this))
+                .add(new TestTargetHUD("RiseTEST", this))
                 .add(new RavenNewTargetHUD("RavenNew", this))
                 .add(new MyauTargetHUD("Myau", this))
         );

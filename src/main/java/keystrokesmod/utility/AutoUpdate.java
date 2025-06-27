@@ -28,7 +28,7 @@ public class AutoUpdate {
             @NotNull Result result = checkVersion();
             switch (result.getType()) {
                 case FAIL:
-                    Utils.sendMessageAnyWay(ChatFormatting.RED + "Fail to check latest version.");
+                    Utils.sendMessageAnyWay(ChatFormatting.RED + "https://github.com/kanmimimu/Raven-XD");
                     break;
                 case OLD:
                     Utils.sendMessageAnyWay(ChatFormatting.RED + "You are not at latest version." +
@@ -45,7 +45,7 @@ public class AutoUpdate {
 
         switch (result.getType()) {
             case FAIL:
-                Utils.sendMessage(ChatFormatting.RED + "Fail to check latest version.");
+                Utils.sendMessage(ChatFormatting.RED + "https://github.com/kanmimimu/Raven-XD");
                 return;
             case LATEST:
                 Utils.sendMessage(ChatFormatting.GREEN + "You are at latest version! " + result.getLatestVersion());
@@ -77,7 +77,7 @@ public class AutoUpdate {
             output.close();
             Utils.sendMessage(ChatFormatting.GREEN + "Download success! Restart client to finish update.");
         } catch (Exception e) {
-            Utils.sendMessage(ChatFormatting.RED + "Fail to download latest version.");
+            Utils.sendMessage(ChatFormatting.RED + "https://github.com/kanmimimu/Raven-XD");
         }
     }
 
@@ -87,7 +87,7 @@ public class AutoUpdate {
     @Contract(" -> new")
     private static @NotNull Result checkVersion() {
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-            HttpGet httpGet = new HttpGet("https://api.github.com/repos/xia-mc/Raven-XD/releases/latest");
+            HttpGet httpGet = new HttpGet("https://api.github.com/kanmimimu/Raven-XD/releases/latest");
             CloseableHttpResponse response = httpClient.execute(httpGet);
 
             if (response.getStatusLine().getStatusCode() != 200) {

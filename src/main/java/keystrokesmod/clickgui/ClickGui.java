@@ -142,7 +142,7 @@ public class ClickGui extends GuiScreen {
                     break;
                 case RAVEN_BS_STYLE:
                     // 1枚目の画像と同じ形式で「Raven bS」を描画
-                    getFont().drawCenteredString("R", wd + 1 - w_c_base, h - 25, Utils.getChroma(2L, 1500L));
+                    getFont().drawCenteredString("r", wd + 1 - w_c_base, h - 25, Utils.getChroma(2L, 1500L));
                     getFont().drawCenteredString("a", wd - w_c_base, h - 15, Utils.getChroma(2L, 1200L));
                     getFont().drawCenteredString("v", wd - w_c_base, h - 5, Utils.getChroma(2L, 900L));
                     getFont().drawCenteredString("e", wd - w_c_base, h + 5, Utils.getChroma(2L, 600L));
@@ -151,7 +151,7 @@ public class ClickGui extends GuiScreen {
                     break;
                 case RAVEN_B4_STYLE:
                     // 1枚目の画像と同じ形式で「Raven B4」を描画
-                    getFont().drawCenteredString("R", wd + 1 - w_c_base, h - 25, Utils.getChroma(2L, 1500L));
+                    getFont().drawCenteredString("r", wd + 1 - w_c_base, h - 25, Utils.getChroma(2L, 1500L));
                     getFont().drawCenteredString("a", wd - w_c_base, h - 15, Utils.getChroma(2L, 1200L));
                     getFont().drawCenteredString("v", wd - w_c_base, h - 5, Utils.getChroma(2L, 900L));
                     getFont().drawCenteredString("e", wd - w_c_base, h + 5, Utils.getChroma(2L, 600L));

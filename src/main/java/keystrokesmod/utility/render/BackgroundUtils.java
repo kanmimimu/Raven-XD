@@ -1,6 +1,5 @@
 package keystrokesmod.utility.render;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import keystrokesmod.utility.Utils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -10,29 +9,18 @@ import net.minecraft.util.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.List;
 
 import static keystrokesmod.Raven.mc;
 
 public class BackgroundUtils {
     public static final ResourceLocation RES_LOGO = new ResourceLocation("keystrokesmod:textures/backgrounds/ravenxd.png");
-    private static final List<ResourceLocation> BACKGROUNDS = new ObjectArrayList<>();
-    private static final int MAX_INDEX;
 
-    private static long lastRenderTime = -1;
-    private static ResourceLocation lastBackground;
-    private static int shadow = 0;
+    // ★変更: 背景ファイルを bg.png に変更
+    private static final ResourceLocation FIXED_BACKGROUND = new ResourceLocation("keystrokesmod:textures/backgrounds/bg.png");
 
-    static {
-        BACKGROUNDS.add(new ResourceLocation("keystrokesmod:textures/backgrounds/1.png"));
-        BACKGROUNDS.add(new ResourceLocation("keystrokesmod:textures/backgrounds/2.png"));
-        BACKGROUNDS.add(new ResourceLocation("keystrokesmod:textures/backgrounds/3.png"));
-        BACKGROUNDS.add(new ResourceLocation("keystrokesmod:textures/backgrounds/4.png"));
-        BACKGROUNDS.add(new ResourceLocation("keystrokesmod:textures/backgrounds/5.png"));
-        MAX_INDEX = BACKGROUNDS.size() - 1;
+    private static int shadow = 0; // lastRenderTime と lastBackground は不要になったため削除
 
-        lastBackground = BACKGROUNDS.get(Utils.randomizeInt(0, MAX_INDEX));
-    }
+    // 静的初期化ブロックは不要になったため削除
 
     public static void renderBackground(@NotNull GuiScreen screen) {
         updateShadow(0);
@@ -45,14 +33,9 @@ public class BackgroundUtils {
     }
 
     private static void renderBackground(final int width, final int height) {
-        final long time = System.currentTimeMillis();
-        if (time - lastRenderTime > 30000) {
-            lastBackground = BACKGROUNDS.get(Utils.randomizeInt(0, MAX_INDEX));
-        }
-        lastRenderTime = time;
-
+        // ★変更: 常に固定の背景を描画
         if (!Utils.nullCheck())
-            RenderUtils.drawImage(lastBackground, 0, 0, width, height);
+            RenderUtils.drawImage(FIXED_BACKGROUND, 0, 0, width, height);
 
         if (shadow != 0) {
             ScaledResolution resolution = new ScaledResolution(mc);

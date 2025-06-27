@@ -25,7 +25,7 @@ public final class CustomCape extends Module {
     public static final List<ResourceLocation> LOADED_CAPES = new ArrayList<>();
     public static String[] CAPES_NAME = new String[]{
             "RavenAnime", "RavenAqua", "RavenGreen", "RavenPurple", "RavenRed", "RavenWhite", "RavenYellow",
-            "Cherry", "Merryzz",
+            "Cherry", "Merryzz","Opal","Tenacity","Novoline","Styles","RiseCape","RiseCapeBlue","RiseCapeGato","RiseCapeGreen","RiseCapeRed",
             "Astolfo","Augustus","AugustusAmethyst","AugustusCandy","AugustusClassic","AugustusLightBlue","AugustusMagic","AugustusMagma","AugustusMango","AugustusTitanium"
     };
     public static final ModeSetting cape = new ModeSetting("Cape", CAPES_NAME, 0);
@@ -67,7 +67,7 @@ public final class CustomCape extends Module {
 
         final String[] builtinCapes = new String[]{
                 "RavenAnime", "RavenAqua", "RavenGreen", "RavenPurple", "RavenRed", "RavenWhite", "RavenYellow",
-                "Cherry", "Merryzz",
+                "Cherry", "Merryzz","Opal","Tenacity","Novoline","Styles","RiseCape","RiseCapeBlue","RiseCapeGato","RiseCapeGreen","RiseCapeRed",
                 "Astolfo","Augustus","AugustusAmethyst","AugustusCandy","AugustusClassic","AugustusLightBlue","AugustusMagic","AugustusMagma","AugustusMango","AugustusTitanium"
         };
         CAPES_NAME = new String[files.length + builtinCapes.length];

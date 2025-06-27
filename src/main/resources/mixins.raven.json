@@ -4,6 +4,7 @@
   "refmap": "mixins.raven.refmap.json",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    // 既存のミックスイン (クライアント以外のものや、共通のミックスイン)
     "client.MixinInventoryPlayer",
     "entity.EntityAccessor",
     "entity.EntityLivingBaseAccessor",
@@ -37,6 +38,7 @@
     "world.ScoreAccessor"
   ],
   "client": [
+    // クライアントサイドのミックスイン
     "client.GuiConnectingAccessor",
     "client.GuiScreenAccessor",
     "client.KeyBindingAccessor",
@@ -62,7 +64,8 @@
     "render.MixinBlockRendererDispatcher",
     "render.MixinEntityRenderer",
     "render.MixinItemRenderer",
-    "render.RenderManagerAccessor"
+    "render.RenderManagerAccessor",
+    "render.ItemMixin" // ★★ ここを "render.ItemMixin" に変更 ★★
   ],
   "server": [],
   "injectors": {
