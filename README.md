@@ -1,6 +1,6 @@
 <div align="center">
   
-# Raven XD
+# Raven XDv2
 Raven B4, but for those who can't afford it.
 
 Raven B4, but not only for Hypixel.
