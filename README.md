@@ -5,7 +5,7 @@ Raven B4, but for those who can't afford it.
 
 Raven B4, but not only for Hypixel.
 
-Raven XD, but not Made in China
+Developed on the basis of RavenXD V2.14
 
 ![image](https://github.com/user-attachments/assets/429b8b5b-53ef-4543-b15b-0d1824e02108)
 
